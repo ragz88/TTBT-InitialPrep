@@ -18,7 +18,9 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 
         public Transform capsuleTop;
         public Transform capsuleBottom;
-
+        public float externalModifier = 0;
+        public Transform followTop;
+        public Transform followBottom;
 
         Rigidbody m_Rigidbody;
 		Animator m_Animator;
@@ -37,7 +39,7 @@ namespace UnityStandardAssets.Characters.ThirdPerson
         float m_CapsuleShift;
         float k_CapsuleHeight;
         float m_CapsuleModifier;
-        public float externalModifier = 0;
+       
 
         void Start()
 		{
@@ -64,12 +66,16 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 
         private void Update()
         {
-            m_CapsuleShift = capsuleTop.position.y - capsuleBottom.position.y;
+            followTop.transform.position = capsuleTop.transform.position;
+            followBottom.transform.position = capsuleBottom.transform.position;
+
+            m_CapsuleShift = followTop.position.y - followBottom.position.y;
             m_CapsuleModifier = m_CapsuleShift / k_CapsuleShift;
             if (!m_IsGrounded)
             {
                 m_CapsuleHeight = k_CapsuleHeight * m_CapsuleModifier;
-                m_CapsuleCenter = (k_CapsuleCenter * (m_CapsuleModifier + externalModifier));
+                //m_CapsuleCenter = (k_CapsuleCenter * (m_CapsuleModifier + externalModifier));
+                m_CapsuleCenter = new Vector3(k_CapsuleCenter.x, ((followTop.position.y - followBottom.position.y)/2), k_CapsuleCenter.z);
                 //m_CapsuleCenter = m_CapsuleCenter + new Vector3(0, .5f, 0);
             }
             else
