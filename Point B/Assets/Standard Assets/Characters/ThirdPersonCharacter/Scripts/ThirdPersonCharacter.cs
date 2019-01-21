@@ -16,7 +16,11 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 		[SerializeField] float m_AnimSpeedMultiplier = 1f;
 		[SerializeField] float m_GroundCheckDistance = 0.1f;
 
-		Rigidbody m_Rigidbody;
+        public Transform capsuleTop;
+        public Transform capsuleBottom;
+
+
+        Rigidbody m_Rigidbody;
 		Animator m_Animator;
 		bool m_IsGrounded;
 		float m_OrigGroundCheckDistance;
@@ -26,24 +30,57 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 		Vector3 m_GroundNormal;
 		float m_CapsuleHeight;
 		Vector3 m_CapsuleCenter;
-		CapsuleCollider m_Capsule;
+        Vector3 k_CapsuleCenter;
+        CapsuleCollider m_Capsule;
 		bool m_Crouching;
+        float k_CapsuleShift;
+        float m_CapsuleShift;
+        float k_CapsuleHeight;
+        float m_CapsuleModifier;
+        public float externalModifier = 0;
 
-
-		void Start()
+        void Start()
 		{
 			m_Animator = GetComponent<Animator>();
 			m_Rigidbody = GetComponent<Rigidbody>();
 			m_Capsule = GetComponent<CapsuleCollider>();
 			m_CapsuleHeight = m_Capsule.height;
-			m_CapsuleCenter = m_Capsule.center;
+            k_CapsuleHeight = m_Capsule.height;
+            m_CapsuleCenter = m_Capsule.center;
+            k_CapsuleCenter = m_Capsule.center;
 
-			m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
+
+            m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
 			m_OrigGroundCheckDistance = m_GroundCheckDistance;
+            if((capsuleBottom!= null) && (capsuleTop!=null))
+            {
+                k_CapsuleShift = capsuleTop.position.y - capsuleBottom.position.y;
+            }
+            else
+            {
+                Debug.Log("One or more of your capsule Heights has not been set.");
+            }
 		}
 
+        private void Update()
+        {
+            m_CapsuleShift = capsuleTop.position.y - capsuleBottom.position.y;
+            m_CapsuleModifier = m_CapsuleShift / k_CapsuleShift;
+            if (!m_IsGrounded)
+            {
+                m_CapsuleHeight = k_CapsuleHeight * m_CapsuleModifier;
+                m_CapsuleCenter = (k_CapsuleCenter * (m_CapsuleModifier + externalModifier));
+                //m_CapsuleCenter = m_CapsuleCenter + new Vector3(0, .5f, 0);
+            }
+            else
+            {
+                m_CapsuleHeight = k_CapsuleHeight;
+                m_CapsuleCenter = k_CapsuleCenter;
+            }
 
-		public void Move(Vector3 move, bool crouch, bool jump)
+        }
+
+        public void Move(Vector3 move, bool crouch, bool jump)
 		{
 
 			// convert the world relative moveInput vector into a local-relative
